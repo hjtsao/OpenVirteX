@@ -133,7 +133,7 @@
             <id>validate-findbugs</id>
             <phase>verify</phase>
             <goals>
-              <goal>findbugs</goal>
+	      <!--<goal>findbugs</goal>-->
               <!--  Uncomment this goal to make the build fail on findbugs errors -->
               <!--<goal>check</goal>-->
             </goals>
