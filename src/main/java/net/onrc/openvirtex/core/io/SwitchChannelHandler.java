@@ -128,7 +128,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                 //h.sendHandShakeMessage(OFType.FEATURES_REQUEST);
 
                 if (m.getOFMessage().getVersion().getWireVersion() >= OFVersion.OF_13.getWireVersion()) {
-                    h.log.debug("Received {} Hello from {} - switching to OF "
+                    h.log.info("Received {} Hello from {} - switching to OF "
                                     + "version 1.3", m.getOFMessage().getVersion(),
                             h.channel.getRemoteAddress());
 
@@ -444,8 +444,10 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case GET_CONFIG_REPLY:
                     case PACKET_IN:
                     case PORT_STATUS:
+                        h.log.info("Get port status from {}", h.getSwitchInfoString());
                     case QUEUE_GET_CONFIG_REPLY:
                     case STATS_REPLY:
+                        h.log.info("Get stats replay from {}", h.getSwitchInfoString());
                     case EXPERIMENTER:
 //                    case VENDOR:
                         h.sw.handleIO(m, h.channel);
@@ -459,6 +461,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case QUEUE_GET_CONFIG_REQUEST:
                     case BARRIER_REQUEST:
                     case STATS_REQUEST:
+                        h.log.info("Get status request from {}", h.getSwitchInfoString());
                     case FEATURES_REQUEST:
                     case FLOW_MOD:
                         this.illegalMessageReceived(h, m);
@@ -664,6 +667,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     break;
                 case PORT_STATUS:
                     //h.log.info("PORT_STATUS");
+                    h.log.info("Get port request from {}", h.getSwitchInfoString());
                     this.processOFPortStatus(h, m);
                     break;
                 case QUEUE_GET_CONFIG_REPLY:
@@ -672,6 +676,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     break;
                 case STATS_REPLY:
                     //h.log.info("STATS_REPLY");
+                    h.log.info("Get status reply from {}", h.getSwitchInfoString());
                     this.processOFStatisticsReply(h, m);
                     break;
                 case EXPERIMENTER:
