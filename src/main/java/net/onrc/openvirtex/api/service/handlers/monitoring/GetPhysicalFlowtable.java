@@ -30,9 +30,13 @@ import net.onrc.openvirtex.api.service.handlers.MonitoringHandler;
 import net.onrc.openvirtex.elements.Mappable;
 import net.onrc.openvirtex.elements.OVXMap;
 import net.onrc.openvirtex.elements.datapath.PhysicalSwitch;
+import net.onrc.openvirtex.elements.network.OVXNetwork;
 import net.onrc.openvirtex.elements.network.PhysicalNetwork;
 import net.onrc.openvirtex.exceptions.InvalidDPIDException;
 import net.onrc.openvirtex.exceptions.MissingRequiredField;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -44,6 +48,8 @@ import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
 
     private JSONRPC2Response resp = null;
+
+    private static Logger log = LogManager.getLogger(OVXNetwork.class.getName());
 
     @Override
     public JSONRPC2Response process(final Map<String, Object> params) {
@@ -104,6 +110,7 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
 
     private LinkedList<OFFlowStatsEntry> aggregateFlowsBySwitch(
             long dpid, Mappable map) {
+        log.info("Get flow table for {}", dpid);
         LinkedList<OFFlowStatsEntry> flows = new LinkedList<OFFlowStatsEntry>();
         final PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(dpid);
         for (Integer tid : map.listVirtualNetworks().keySet()) {
