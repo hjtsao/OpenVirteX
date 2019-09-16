@@ -46,7 +46,6 @@ import net.onrc.openvirtex.util.BitSetIndex;
 import net.onrc.openvirtex.util.BitSetIndex.IndexType;
 import net.onrc.openvirtex.util.OVXFlowManager;
 
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -259,6 +258,7 @@ public class OVXNetwork extends Network<OVXSwitch, OVXPort, OVXLink> implements
          */
         final List<PhysicalSwitch> switches = new ArrayList<PhysicalSwitch>();
         // TODO: check if dpids are present in physical network
+        // TODO: (hjtsao) the vdpids should be tenant awared, currently it is possible that each tenant will have same vdpids.
         for (final long dpid : dpids) {
             switches.add(PhysicalNetwork.getInstance().getSwitch(dpid));
         }

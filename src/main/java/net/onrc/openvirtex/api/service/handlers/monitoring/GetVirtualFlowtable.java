@@ -34,12 +34,16 @@ import net.onrc.openvirtex.exceptions.MissingRequiredField;
 import net.onrc.openvirtex.exceptions.NetworkMappingException;
 import net.onrc.openvirtex.messages.OVXFlowMod;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class GetVirtualFlowtable extends ApiHandler<Map<String, Object>> {
 
+    Logger log = LogManager.getLogger(GetVirtualFlowtable.class.getName());
     JSONRPC2Response resp = null;
 
     @Override
@@ -53,6 +57,7 @@ public class GetVirtualFlowtable extends ApiHandler<Map<String, Object>> {
             final OVXMap map = OVXMap.getInstance();
             final LinkedList<Map<String, Object>> flows = new LinkedList<Map<String, Object>>();
             if (dpid.longValue() == -1) {
+                log.info("Getting flow tables for tenant {}", tid);
                 HashMap<String, Object> res = new HashMap<String, Object>();
                 for (OVXSwitch vsw : map.getVirtualNetwork(tid.intValue())
                         .getSwitches()) {
