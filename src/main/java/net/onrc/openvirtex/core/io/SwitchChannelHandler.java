@@ -305,6 +305,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                             "Miss send length was not set properly by switch {}",
                             h.featuresReply.getDatapathId());
                 }
+                h.log.info("Go on to state WAIT_DESCRIPTION_STAT_REPLY");
                 h.sendHandshakeDescriptionStatsRequest();
                 h.setState(WAIT_DESCRIPTION_STAT_REPLY);
             }
