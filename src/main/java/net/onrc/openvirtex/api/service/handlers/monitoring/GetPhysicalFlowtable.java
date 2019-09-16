@@ -35,8 +35,6 @@ import net.onrc.openvirtex.elements.network.PhysicalNetwork;
 import net.onrc.openvirtex.exceptions.InvalidDPIDException;
 import net.onrc.openvirtex.exceptions.MissingRequiredField;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -44,12 +42,14 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 import net.onrc.openvirtex.messages.OVXFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
 
     private JSONRPC2Response resp = null;
 
-    private static Logger log = LogManager.getLogger(OVXNetwork.class.getName());
+    private static Logger log = LoggerFactory.getLogger("PhysicalFlowtable");
 
     @Override
     public JSONRPC2Response process(final Map<String, Object> params) {
