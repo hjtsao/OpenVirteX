@@ -326,6 +326,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
             void processOFStatisticsReply(final SwitchChannelHandler h,
                                           final OVXMessage m) {
                 // Read description, if it has been updated
+                h.log.info("Waiting description stat reply from {}", h.featuresReply.getDatapathId());
                 if (((OFStatsReply)m.getOFMessage()).getStatsType() != OFStatsType.DESC) {
                     h.log.warn("Expecting Description stats but received stats "
                             + "type {} from {}. Ignoring ...", ((OFStatsReply)m.getOFMessage()).getStatsType(),
@@ -422,7 +423,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
            @Override
             void processOFMessage(final SwitchChannelHandler h,
                                   final OVXMessage m) throws IOException {
-
+               h.log.info("{} is active now", h.getSwitchInfoString());
                 switch (m.getOFMessage().getType()) {
                     case ECHO_REQUEST:
                         this.processOFEchoRequest(h, m);
