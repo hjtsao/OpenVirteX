@@ -55,7 +55,6 @@ import org.projectfloodlight.openflow.exceptions.OFParseError;
 import org.projectfloodlight.openflow.protocol.*;
 
 
-
 public class SwitchChannelHandler extends OFChannelHandler {
 
     Logger log = LogManager.getLogger(SwitchChannelHandler.class.getName());
@@ -453,7 +452,9 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
                         HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
                         List<OFFlowStatsEntry> statsList = new LinkedList<>();
-                        OFStatsReply ofStatsReply = (OFFlowStatsReply)m.getOFMessage();
+                        OFStatsReply ofStatsReply = (OFStatsReply) m.getOFMessage();
+                        h.log.info("{}", ofStatsReply.getStatsType());
+                        /*OFStatsReply ofStatsReply = (OFFlowStatsReply)m.getOFMessage();
                         if (ofStatsReply.getStatsType().equals(OFStatsType.FLOW)){
                             h.log.info("Stats type: {}", ofStatsReply.getStatsType());
                             OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
@@ -466,7 +467,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
                             PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
                             sw.setFlowStatistics(stats);
-                        }
+                        }*/
                     case EXPERIMENTER:
 //                    case VENDOR:
                         h.sw.handleIO(m, h.channel);
