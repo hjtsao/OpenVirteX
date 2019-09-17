@@ -1059,7 +1059,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
                     switch (ofm.getOFMessage().getType()) {
                         case PACKET_IN:
-                            this.log.info("PACKET_IN");
+                            //this.log.info("PACKET_IN");
 
                             OFPacketIn temp = (OFPacketIn)(ofm.getOFMessage());
                             final byte[] data = temp.getData();
@@ -1068,7 +1068,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
                             if (OVXLLDP.isLLDP(data)) {
                                 if (this.sw != null) {
-                                    this.log.info("PACKET_IN - handleLLDP");
+                                    //this.log.info("PACKET_IN - handleLLDP");
                                     PhysicalNetwork.getInstance().handleLLDP(ofm, this.sw);
                                 } else {
                                     this.log.warn("Switch has not connected yet; dropping LLDP for now");
