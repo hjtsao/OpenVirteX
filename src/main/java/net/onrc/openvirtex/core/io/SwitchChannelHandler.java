@@ -460,20 +460,19 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         List<OFFlowStatsEntry> statsList = new LinkedList<>();
                         OFStatsReply ofStatsReply = (OFStatsReply) m.getOFMessage();
                         h.log.info("{}", ofStatsReply.getStatsType());
-                        /*OFStatsReply ofStatsReply = (OFFlowStatsReply)m.getOFMessage();
                         if (ofStatsReply.getStatsType().equals(OFStatsType.FLOW)){
-                            h.log.info("Stats type: {}", ofStatsReply.getStatsType());
                             OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
                             for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
                                 int tid = 0;
                                 statsList.add(stat);
+                                h.log.info("Add flow entry {}", stat.toString());
                             }
 
                             stats.put(0, statsList);
 
                             PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
                             sw.setFlowStatistics(stats);
-                        }*/
+                        }
                         break;
                     case EXPERIMENTER:
 //                    case VENDOR:
