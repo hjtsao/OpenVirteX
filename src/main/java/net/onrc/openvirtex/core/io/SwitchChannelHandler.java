@@ -450,21 +450,23 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         h.log.info("Get stats replay from {}", h.getSwitchInfoString());
 
                         // Need to put these flows into a data structure (does this data structure already exist?)
+
                         HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
                         List<OFFlowStatsEntry> statsList = new LinkedList<>();
                         OFStatsReply ofStatsReply = (OFFlowStatsReply)m.getOFMessage();
+                        if (ofStatsReply.getStatsType().equals(OFStatsType.FLOW)){
+                            h.log.info("Stats type: {}", ofStatsReply.getStatsType());
+                            OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
+                            for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
+                                int tid = 0;
+                                statsList.add(stat);
+                            }
 
-                        h.log.info("Stats type: {}", ofStatsReply.getStatsType());
-                        OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
-                        for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
-                            int tid = 0;
-                            statsList.add(stat);
+                            stats.put(0, statsList);
+
+                            PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
+                            sw.setFlowStatistics(stats);
                         }
-
-                        stats.put(0, statsList);
-
-                        PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
-                        sw.setFlowStatistics(stats);
                     case EXPERIMENTER:
 //                    case VENDOR:
                         h.sw.handleIO(m, h.channel);
