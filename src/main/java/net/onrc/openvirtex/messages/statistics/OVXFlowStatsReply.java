@@ -65,7 +65,7 @@ public class OVXFlowStatsReply extends OVXStatistics implements VirtualizableSta
 
     @Override
     public void virtualizeStatistic(final PhysicalSwitch sw, final OVXStatisticsReply msg) {
-        this.log.debug("virtualizeStatistic");
+        this.log.info("OVXFlowStatsReplay: virtualizeStatistic");
         this.log.debug(msg.getOFMessage().toString());
 
         if (msg.getOFMessage().getXid() != 0) {

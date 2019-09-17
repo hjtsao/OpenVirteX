@@ -95,8 +95,8 @@ DESC FLOW AGGREGATE TABLE PORT QUEUE VENDOR
 
     @Override
     public void virtualize(final PhysicalSwitch sw) {
-        //this.log.info("virtualize ");
-        //this.log.info(this.getOFMessage().toString());
+        this.log.info("OVXStatisticsReply: virtualize ");
+        this.log.info(this.getOFMessage().toString());
 
         try {
 

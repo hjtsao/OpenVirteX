@@ -27,9 +27,7 @@ package net.onrc.openvirtex.core.io;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 
 import net.onrc.openvirtex.core.OpenVirteXController;
@@ -450,6 +448,23 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case QUEUE_GET_CONFIG_REPLY:
                     case STATS_REPLY:
                         h.log.info("Get stats replay from {}", h.getSwitchInfoString());
+
+                        // Need to put these flows into a data structure (does this data structure already exist?)
+                        HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
+                        List<OFFlowStatsEntry> statsList = new LinkedList<>();
+                        OFStatsReply ofStatsReply = (OFFlowStatsReply)m.getOFMessage();
+
+                        h.log.info("Stats type: {}", ofStatsReply.getStatsType());
+                        OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
+                        for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
+                            int tid = 0;
+                            statsList.add(stat);
+                        }
+
+                        stats.put(0, statsList);
+
+                        PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
+                        sw.setFlowStatistics(stats);
                     case EXPERIMENTER:
 //                    case VENDOR:
                         h.sw.handleIO(m, h.channel);
