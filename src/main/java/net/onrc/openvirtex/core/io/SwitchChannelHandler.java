@@ -427,6 +427,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         this.processOFEchoRequest(h, m);
                         break;
                     case BARRIER_REPLY:
+                        break;
                     case ECHO_REPLY:
                         // do nothing but thank the switch
                         break;
@@ -439,15 +440,20 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         h.sw.setFeaturesReply(h.featuresReply);
                         break;
                     case ERROR:
+                        break;
                     case FLOW_REMOVED:
+                        break;
                     case GET_CONFIG_REPLY:
+                        break;
                     case PACKET_IN:
+                        break;
                     case PORT_STATUS:
                         h.log.info("Get port status from {}", h.getSwitchInfoString());
+                        break;
                     case QUEUE_GET_CONFIG_REPLY:
+                        break;
                     case STATS_REPLY:
                         h.log.info("Get stats replay from {}", h.getSwitchInfoString());
-
                         // Need to put these flows into a data structure (does this data structure already exist?)
 
                         HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
@@ -468,6 +474,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                             PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
                             sw.setFlowStatistics(stats);
                         }*/
+                        break;
                     case EXPERIMENTER:
 //                    case VENDOR:
                         h.sw.handleIO(m, h.channel);
@@ -475,14 +482,22 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     // The following messages are sent to switches. The controller
                     // should never receive them
                     case SET_CONFIG:
+                        break;
                     case GET_CONFIG_REQUEST:
+                        break;
                     case PACKET_OUT:
+                        break;
                     case PORT_MOD:
+                        break;
                     case QUEUE_GET_CONFIG_REQUEST:
+                        break;
                     case BARRIER_REQUEST:
+                        break;
                     case STATS_REQUEST:
                         h.log.info("Get status request from {}", h.getSwitchInfoString());
+                        break;
                     case FEATURES_REQUEST:
+                        break;
                     case FLOW_MOD:
                         this.illegalMessageReceived(h, m);
                         break;
