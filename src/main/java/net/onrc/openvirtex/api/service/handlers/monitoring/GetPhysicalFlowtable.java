@@ -19,10 +19,7 @@
  */
 package net.onrc.openvirtex.api.service.handlers.monitoring;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.onrc.openvirtex.api.service.handlers.ApiHandler;
 import net.onrc.openvirtex.api.service.handlers.HandlerUtils;
@@ -93,10 +90,17 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
         return JSONRPC2ParamsType.OBJECT;
     }
 
-    private List<Map<String, Object>> flowModsToMap(
+    private List<Map<String, String>> flowModsToMap(
             LinkedList<OFFlowStatsEntry> flows) {
-        final List<Map<String, Object>> res = new LinkedList<Map<String, Object>>();
-        for (OFFlowStatsEntry frep : flows) {
+        final List<Map<String, String>> res = new LinkedList<Map<String, String>>();
+        for(OFFlowStatsEntry ofFlowStatsEntry : flows) {
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("Table ID: {}", ofFlowStatsEntry.getTableId().toString());
+            map.put("Match: {}", ofFlowStatsEntry.getMatch().toString());
+            map.put("Action: {}", ofFlowStatsEntry.getInstructions().toString());
+            res.add(map);
+        }
+        /*for (OFFlowStatsEntry frep : flows) {
             OVXFlowMod fm = new OVXFlowMod(OFFactories.getFactory(frep.getVersion()).buildFlowModify()
                     .setActions(frep.getActions())
                     .setMatch(frep.getMatch())
@@ -104,7 +108,7 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
             );
 
             res.add(fm.toMap());
-        }
+        }*/
         return res;
     }
 
