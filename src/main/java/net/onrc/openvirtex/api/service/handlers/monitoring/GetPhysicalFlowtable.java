@@ -113,11 +113,20 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
         log.info("Get flow table for {}", dpid);
         LinkedList<OFFlowStatsEntry> flows = new LinkedList<OFFlowStatsEntry>();
         final PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(dpid);
+        /////////////// Work in progress ///////////////
         for (Integer tid : map.listVirtualNetworks().keySet()) {
-            if (sw.getFlowStats(tid) != null) {
+            log.info("tid: {}", tid);
+            /*if (sw.getFlowStats(tid) != null) {
                 flows.addAll(sw.getFlowStats(tid));
-            }
+            }*/
         }
+        if (sw.getFlowStats(0) != null) {
+            flows.addAll(sw.getFlowStats(0));
+        }
+
+
+
+        /////////////// Work in progress ///////////////
         return flows;
     }
 

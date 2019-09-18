@@ -514,6 +514,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
                         for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
                             statsList.add(stat);
+                            h.log.info("Add rule {}", stat.toString());
                         }
                         stats.put(0, statsList);
                         h.log.info("Set flow table for {}", h.sw.getSwitchId());
