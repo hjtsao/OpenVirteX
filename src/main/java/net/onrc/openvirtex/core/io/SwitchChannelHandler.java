@@ -455,24 +455,8 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case STATS_REPLY:
                         h.log.info("Get stats replay from {}", h.getSwitchInfoString());
                         // Need to put these flows into a data structure (does this data structure already exist?)
+                        processOFStatsReply(h, m);
 
-                        HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
-                        List<OFFlowStatsEntry> statsList = new LinkedList<>();
-                        OFStatsReply ofStatsReply = (OFStatsReply) m.getOFMessage();
-                        h.log.info("{}", ofStatsReply.getStatsType());
-                        if (ofStatsReply.getStatsType().equals(OFStatsType.FLOW)){
-                            OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
-                            for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
-                                int tid = 0;
-                                statsList.add(stat);
-                                h.log.info("Add flow entry {}", stat.toString());
-                            }
-
-                            stats.put(0, statsList);
-
-                            PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
-                            sw.setFlowStatistics(stats);
-                        }
                         break;
                     case EXPERIMENTER:
 //                    case VENDOR:
@@ -520,6 +504,26 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
             }
 
+            void processOFStatsReply(final SwitchChannelHandler h,
+                                      final OVXMessage m) {
+                OFStatsReply ofStatsReply = (OFStatsReply) m.getOFMessage();
+                switch(ofStatsReply.getStatsType()){
+                    case FLOW:
+                        HashMap<Integer, List<OFFlowStatsEntry>> stats = new HashMap<Integer, List<OFFlowStatsEntry>>();
+                        List<OFFlowStatsEntry> statsList = new LinkedList<>();
+                        OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
+                        for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
+                            statsList.add(stat);
+                        }
+                        stats.put(0, statsList);
+                        h.log.info("Set flow table for {}", h.sw.getSwitchId());
+                        PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
+                        sw.setFlowStatistics(stats);
+                        break;
+                    default:
+                        break;
+                }
+            }
         };
 
         private boolean handshakeComplete = false;
