@@ -421,7 +421,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
            @Override
             void processOFMessage(final SwitchChannelHandler h,
                                   final OVXMessage m) throws IOException {
-               h.log.info("{} is active now", h.getSwitchInfoString());
+               //h.log.info("{} is active now", h.getSwitchInfoString());
                 switch (m.getOFMessage().getType()) {
                     case ECHO_REQUEST:
                         this.processOFEchoRequest(h, m);
@@ -448,12 +448,12 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case PACKET_IN:
                         break;
                     case PORT_STATUS:
-                        h.log.info("Get port status from {}", h.getSwitchInfoString());
+                        //h.log.info("Get port status from {}", h.getSwitchInfoString());
                         break;
                     case QUEUE_GET_CONFIG_REPLY:
                         break;
                     case STATS_REPLY:
-                        h.log.info("Get stats replay from {}", h.getSwitchInfoString());
+                        //h.log.info("Get stats replay from {}", h.getSwitchInfoString());
                         // Need to put these flows into a data structure (does this data structure already exist?)
                         processOFStatsReply(h, m);
 
@@ -477,7 +477,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
                     case BARRIER_REQUEST:
                         break;
                     case STATS_REQUEST:
-                        h.log.info("Get status request from {}", h.getSwitchInfoString());
+                        //h.log.info("Get status request from {}", h.getSwitchInfoString());
                         break;
                     case FEATURES_REQUEST:
                         break;
@@ -514,10 +514,10 @@ public class SwitchChannelHandler extends OFChannelHandler {
                         OFFlowStatsReply ofFlowStatsReply = (OFFlowStatsReply) ofStatsReply;
                         for (OFFlowStatsEntry stat : ofFlowStatsReply.getEntries()) {
                             statsList.add(stat);
-                            h.log.info("Add rule {}", stat.toString());
+                            //h.log.info("Add rule {}", stat.toString());
                         }
                         stats.put(0, statsList);
-                        h.log.info("Set flow table for {}", h.sw.getSwitchId());
+                        //h.log.info("Set flow table for {}", h.sw.getSwitchId());
                         PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(h.sw.getSwitchId());
                         sw.setFlowStatistics(stats);
                         break;

@@ -114,7 +114,7 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
 
     private LinkedList<OFFlowStatsEntry> aggregateFlowsBySwitch(
             long dpid, Mappable map) {
-        log.info("Get flow table for {}", dpid);
+        //log.info("Get flow table for {}", dpid);
         LinkedList<OFFlowStatsEntry> flows = new LinkedList<OFFlowStatsEntry>();
         final PhysicalSwitch sw = PhysicalNetwork.getInstance().getSwitch(dpid);
         /////////////// Work in progress ///////////////
