@@ -57,7 +57,7 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
             LinkedList<OFFlowStatsEntry> flows = new LinkedList<OFFlowStatsEntry>();
 
             if (dpid.longValue() == -1) {
-                HashMap<String, List<Map<String, Object>>> res = new HashMap<String, List<Map<String, Object>>>();
+                HashMap<String, List<Map<String, String>>> res = new HashMap<String, List<Map<String, String>>>();
                 for (PhysicalSwitch sw : PhysicalNetwork.getInstance()
                         .getSwitches()) {
                     flows = aggregateFlowsBySwitch(sw.getSwitchId(), map);
