@@ -420,7 +420,7 @@ def do_getPhysicalFlowtable(gopts, opts, args):
     if len(args) == 1:
         req["dpid"] = int(args[0].replace(":", ""), 16)
     result = connect(gopts, "status", "getPhysicalFlowtable", data=req, passwd=getPasswd(gopts))
-    print json.dumps(result, sort_keys=True, indent=4, seperators=(',', ': '))
+    print json.dumps(result, indent=4, seperators=(',', ': '))
 
 def pa_getPhysicalHosts(args, cmd):
     usage = "%s" % USAGE.format(cmd)
