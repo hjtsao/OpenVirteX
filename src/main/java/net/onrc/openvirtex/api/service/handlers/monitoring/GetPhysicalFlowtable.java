@@ -95,9 +95,10 @@ public class GetPhysicalFlowtable extends ApiHandler<Map<String, Object>> {
         final List<Map<String, String>> res = new LinkedList<Map<String, String>>();
         for(OFFlowStatsEntry ofFlowStatsEntry : flows) {
             Map<String, String> map = new LinkedHashMap<>();
-            map.put("Table ID: {}", ofFlowStatsEntry.getTableId().toString());
-            map.put("Match: {}", ofFlowStatsEntry.getMatch().toString());
-            map.put("Action: {}", ofFlowStatsEntry.getInstructions().toString());
+            map.put("Table ID", ofFlowStatsEntry.getTableId().toString());
+            map.put("Priority", ((Integer)ofFlowStatsEntry.getPriority()).toString());
+            map.put("Match", ofFlowStatsEntry.getMatch().toString());
+            map.put("Action", ofFlowStatsEntry.getInstructions().toString());
             res.add(map);
         }
         /*for (OFFlowStatsEntry frep : flows) {

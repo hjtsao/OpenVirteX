@@ -1115,7 +1115,7 @@ public class SwitchChannelHandler extends OFChannelHandler {
 
                         default:
                             // Process all non-packet-ins
-                            this.log.info("Not PACKET_IN - " + ofm.toString());
+                            // this.log.info("Not PACKET_IN - " + ofm.toString());
                             this.state.processOFMessage(this, ofm);
                             break;
                     }

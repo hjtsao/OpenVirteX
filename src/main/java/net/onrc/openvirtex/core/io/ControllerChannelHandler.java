@@ -25,9 +25,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
+import net.onrc.openvirtex.api.service.handlers.monitoring.ListVirtualNetworks;
 import net.onrc.openvirtex.core.OpenVirteXController;
 import net.onrc.openvirtex.elements.OVXMap;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
+import net.onrc.openvirtex.elements.network.OVXNetwork;
 import net.onrc.openvirtex.exceptions.ControllerStateException;
 import net.onrc.openvirtex.exceptions.HandshakeTimeoutException;
 import net.onrc.openvirtex.exceptions.SwitchStateException;
@@ -46,6 +48,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+import org.projectfloodlight.openflow.protocol.ver13.OFTypeSerializerVer13;
 
 //import org.openflow.vendor.nicira.OFNiciraVendorData;
 //import org.openflow.vendor.nicira.OFRoleRequestVendorData;
@@ -218,58 +222,95 @@ public class ControllerChannelHandler extends OFChannelHandler {
             void processOFMessage(final ControllerChannelHandler h,
                                   final OVXMessage m) throws IOException {
 
-                switch (m.getOFMessage().getType()) {
-                    case HELLO:
-                        this.processOFHello(h, m);
-                        break;
-                    case ECHO_REPLY:
-                        break;
-                    case ECHO_REQUEST:
-                        this.processOFEchoRequest(h, m);
-                        break;
+                if (m.getOFMessage().getVersion() == OFVersion.OF_10) {
+                    switch (m.getOFMessage().getType()) {
+                        case HELLO:
+                            this.processOFHello(h, m);
+                            break;
+                        case ECHO_REPLY:
+                            break;
+                        case ECHO_REQUEST:
+                            this.processOFEchoRequest(h, m);
+                            break;
 
-                    case FEATURES_REQUEST:
-                        this.processOFFeaturesRequest(h, m);
-                        break;
-                    case BARRIER_REQUEST:
-                        // TODO: actually implement barrier contract
-                        final OFBarrierReply ofBarrierReply = OFFactories.getFactory(m.getOFMessage().getVersion())
-                                .buildBarrierReply()
-                                .setXid(m.getOFMessage().getXid())
-                                .build();
+                        case FEATURES_REQUEST:
+                            this.processOFFeaturesRequest(h, m);
+                            break;
+                        case BARRIER_REQUEST:
+                            // The enum is based on OpenFlow1.0
+                            // In OpenFlow1.3, BARRIER_REQUEST should be 20, not 18
+                            // TODO: actually implement barrier contract
+                            /*final OFBarrierReply ofBarrierReply = OFFactories.getFactory(m.getOFMessage().getVersion())
+                                    .buildBarrierReply()
+                                    .setXid(m.getOFMessage().getXid())
+                                    .build();
 
 
-                        h.channel.write(Collections.singletonList(ofBarrierReply));
-                        break;
-                    case SET_CONFIG:
-                    case ERROR:
-                    case PACKET_OUT:
-                    case PORT_MOD:
-                    case QUEUE_GET_CONFIG_REQUEST:
-                    case STATS_REQUEST:
-                    case FLOW_MOD:
-                    case GET_CONFIG_REQUEST:
-                        h.sw.handleIO(m, h.channel);
-                        break;
-                    case EXPERIMENTER:
-                        processOFVendor(h, m);
-                        break;
-                    case ROLE_REQUEST:
-                        processOFRoleRequest(h, m);
-                        break;
-                    case FEATURES_REPLY:
-                    case FLOW_REMOVED:
-                    case PACKET_IN:
-                    case PORT_STATUS:
-                    case BARRIER_REPLY:
-                    case GET_CONFIG_REPLY:
-                    case STATS_REPLY:
-                    case QUEUE_GET_CONFIG_REPLY:
-                        this.illegalMessageReceived(h, m);
-                        break;
-                    default:
-                        break;
-                }
+                            h.channel.write(Collections.singletonList(ofBarrierReply));*/
+
+                            // Currently treat this as OF13_STATS_REQUEST
+                            OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
+                            switch(ofStatsRequest.getStatsType()){
+                                case FLOW:
+                                    final OFStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
+                                            .setXid(m.getOFMessage().getXid())
+                                            .build();
+                                    h.channel.write(Collections.singletonList(ofFlowStatsReply));
+                                    break;
+                                case GROUP:
+                                    final OFStatsReply ofGroupStatsReply = OFFactoryVer13.INSTANCE.buildGroupStatsReply()
+                                            .setXid(m.getOFMessage().getXid())
+                                            .build();
+                                    h.channel.write(Collections.singletonList(ofGroupStatsReply));
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+
+                        case SET_CONFIG:
+                        case ERROR:
+                        case PACKET_OUT:
+                        case PORT_MOD:
+                        case QUEUE_GET_CONFIG_REQUEST:
+                        case STATS_REQUEST:
+                        case FLOW_MOD:
+                        case GET_CONFIG_REQUEST:
+                            h.sw.handleIO(m, h.channel);
+                            break;
+                        case EXPERIMENTER:
+                            processOFVendor(h, m);
+                            break;
+                        case ROLE_REQUEST:
+                            processOFRoleRequest(h, m);
+                            break;
+                        case FEATURES_REPLY:
+                        case FLOW_REMOVED:
+                        case PACKET_IN:
+                        case PORT_STATUS:
+                        case BARRIER_REPLY:
+                        case GET_CONFIG_REPLY:
+                        case STATS_REPLY:
+                        case QUEUE_GET_CONFIG_REPLY:
+                            this.illegalMessageReceived(h, m);
+                            break;
+                        default:
+                            break;
+                    }
+                } /* else if(m.getOFMessage().getVersion() == OFVersion.OF_13) {
+                    // TODO: Add OpenFlow1.3 message support.
+                    switch(m.getOFMessage().getType().toString()) {
+                        case "0":
+                            // HELLO
+                            this.processOFHello(h, m);
+                            break;
+                        case "1":
+                            // ERROR
+                            final OVXMap map = OVXMap.getInstance();
+                            final OVXNetwork virtualNetwork = map.getVirtualNetwork(h.sw.getSwitchId());
+                            h.log.info("Tenant {} got OF_ERROR: {}", )
+                    }
+                }*/
             }
 
         };
