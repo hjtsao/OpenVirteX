@@ -318,11 +318,18 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 switch (ofStatsRequest.getStatsType()) {
                     case FLOW:
                         OVXSwitch ovxSwitch = (OVXSwitch)h.sw;
-                        OFFlowStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
-                                .setXid(ofStatsRequest.getXid())
-                                .setEntries(((OVXFlowTable)ovxSwitch.getFlowTable()).getFlowStatsEntryList())
-                                .build();
-                        h.channel.write(Collections.singletonList(ofFlowStatsReply));
+                        if(((OVXFlowTable)ovxSwitch.getFlowTable()).getFlowStatsEntryList() != null) {
+                            OFFlowStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
+                                    .setXid(ofStatsRequest.getXid())
+                                    .setEntries(((OVXFlowTable) ovxSwitch.getFlowTable()).getFlowStatsEntryList())
+                                    .build();
+                            h.channel.write(Collections.singletonList(ofFlowStatsReply));
+                        } else {
+                            OFFlowStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
+                                    .setXid(ofStatsRequest.getXid())
+                                    .build();
+                            h.channel.write(Collections.singletonList(ofFlowStatsReply));
+                        }
                         break;
                     case METER_FEATURES:
                         // TODO: Should check which physical switch is map to current OVX switch then get meter feature.
