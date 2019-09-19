@@ -222,7 +222,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
             void processOFMessage(final ControllerChannelHandler h,
                                   final OVXMessage m) throws IOException {
 
-                if (m.getOFMessage().getVersion() == OFVersion.OF_10) {
+                if (m.getOFMessage().getVersion() == OFVersion.OF_13) {
                     switch (m.getOFMessage().getType()) {
                         case HELLO:
                             this.processOFHello(h, m);
