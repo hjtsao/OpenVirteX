@@ -173,31 +173,6 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 h.channel.write(Collections.singletonList(reply));
                 h.log.info("Send Port Descriptions to dpid {}", h.channel.getRemoteAddress());
 
-                h.setState(WAIT_GET_CONFIG_RQ);
-            }
-
-            @Override
-            void processOFError(final ControllerChannelHandler h,
-                                final OVXMessage m) throws IOException {
-                h.log.error(
-                        "Error waiting for Port Description (type:{})",
-                        ((OFErrorMsg)m.getOFMessage()).getErrType());
-
-                h.channel.disconnect();
-            }
-        },
-        WAIT_GET_CONFIG_RQ(false) {
-            @Override
-            void processOFGetConfigRequest(final ControllerChannelHandler h,
-                                           final OVXMessage m){
-                Set<OFConfigFlags> flagsSet = new HashSet<>();
-                flagsSet.add(OFConfigFlags.FRAG_NORMAL);
-                OFGetConfigReply ofGetConfigReply = OFFactoryVer13.INSTANCE.buildGetConfigReply()
-                        .setXid(m.getOFMessage().getXid())
-                        .setMissSendLen(0xffff)
-                        .setFlags(flagsSet)
-                        .build();
-                h.channel.write(Collections.singletonList(ofGetConfigReply));
                 h.setState(ACTIVE);
             }
 
@@ -205,7 +180,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
             void processOFError(final ControllerChannelHandler h,
                                 final OVXMessage m) throws IOException {
                 h.log.error(
-                        "Error waiting for Get Config (type:{})",
+                        "Error waiting for Port Description (type:{})",
                         ((OFErrorMsg)m.getOFMessage()).getErrType());
 
                 h.channel.disconnect();
@@ -258,7 +233,6 @@ public class ControllerChannelHandler extends OFChannelHandler {
                         case ECHO_REQUEST:
                             this.processOFEchoRequest(h, m);
                             break;
-
                         case FEATURES_REQUEST:
                             this.processOFFeaturesRequest(h, m);
                             break;
@@ -266,14 +240,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             // The enum is based on OpenFlow1.0
                             // In OpenFlow1.3, BARRIER_REQUEST should be 20, not 18
                             // TODO: actually implement barrier contract
-                            final OFBarrierReply ofBarrierReply = OFFactories.getFactory(m.getOFMessage().getVersion())
-                                    .buildBarrierReply()
-                                    .setXid(m.getOFMessage().getXid())
-                                    .build();
-
-
-                            h.channel.write(Collections.singletonList(ofBarrierReply));
-
+                            processOFBarrierRequest(h, m);
                             // Currently treat this as OF13_STATS_REQUEST
                             /*OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
                             switch(ofStatsRequest.getStatsType()){
@@ -295,12 +262,26 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             break;
 
                         case SET_CONFIG:
+                            this.processOFSetConfig(h, m);
+                            break;
                         case ERROR:
+                            this.processOFError(h, m);
+                            break;
                         case PACKET_OUT:
+                            this.processOFPacketOut(h,m);
+                            break;
                         case PORT_MOD:
+                            this.processOFPortMod(h, m);
+                            break;
                         case QUEUE_GET_CONFIG_REQUEST:
+                            this.processOFQueueGetConfigRequest(h, m);
+                            break;
                         case STATS_REQUEST:
+                            this.processOFStatsRequest(h, m);
+                            break;
                         case FLOW_MOD:
+                            this.processOFFlowMod(h, m);
+                            break;
                         case GET_CONFIG_REQUEST:
                             h.sw.handleIO(m, h.channel);
                             break;
@@ -311,12 +292,19 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             processOFRoleRequest(h, m);
                             break;
                         case FEATURES_REPLY:
+                            break;
                         case FLOW_REMOVED:
+                            break;
                         case PACKET_IN:
+                            break;
                         case PORT_STATUS:
+                            break;
                         case BARRIER_REPLY:
+                            break;
                         case GET_CONFIG_REPLY:
+                            break;
                         case STATS_REPLY:
+                            break;
                         case QUEUE_GET_CONFIG_REPLY:
                             this.illegalMessageReceived(h, m);
                             break;
@@ -337,6 +325,35 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             h.log.info("Tenant {} got OF_ERROR: {}", )
                     }
                 }*/
+
+            }
+            @Override
+            void processOFGetConfigRequest(final ControllerChannelHandler h,
+                                           final OVXMessage m){
+                Set<OFConfigFlags> flagsSet = new HashSet<>();
+                flagsSet.add(OFConfigFlags.FRAG_NORMAL);
+                OFGetConfigReply ofGetConfigReply = OFFactoryVer13.INSTANCE.buildGetConfigReply()
+                        .setXid(m.getOFMessage().getXid())
+                        .setMissSendLen(0xffff)
+                        .setFlags(flagsSet)
+                        .build();
+                h.channel.write(Collections.singletonList(ofGetConfigReply));
+                h.setState(ACTIVE);
+            }
+
+            @Override
+            void processOFBarrierRequest(final ControllerChannelHandler h,
+                                         final OVXMessage m) {
+                OFBarrierReply ofBarrierReply = OFFactoryVer13.INSTANCE.buildBarrierReply()
+                        .setXid(m.getOFMessage().getXid())
+                        .build();
+                h.channel.write(Collections.singletonList(ofBarrierReply));
+            }
+
+            @Override
+            void processOFSetConfig(final ControllerChannelHandler h,
+                                    final OVXMessage m) {
+                // Should keep up flags and miss send length in switch
             }
 
         };
@@ -476,7 +493,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 // The following messages are sent to switches. The controller
                 // should never receive them
                 case SET_CONFIG:
-                    this.processOFSetConfig(h, m);
+                    processOFSetConfig(h, m);
                     break;
                 case PACKET_OUT:
                     this.processOFPacketOut(h, m);
@@ -488,7 +505,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                     this.processOFQueueGetConfigRequest(h, m);
                     break;
                 case BARRIER_REQUEST:
-                    this.processOFBarrierRequest(h, m);
+                    processOFBarrierRequest(h, m);
                     break;
                 case STATS_REQUEST:
                     this.processOFStatsRequest(h, m);
@@ -500,16 +517,23 @@ public class ControllerChannelHandler extends OFChannelHandler {
                     this.processOFFlowMod(h, m);
                     break;
                 case GET_CONFIG_REQUEST:
-                    this.processOFGetConfigRequest(h, m);
+                    processOFGetConfigRequest(h, m);
                     break;
 
                 case FEATURES_REPLY:
+                    break;
                 case FLOW_REMOVED:
+                    break;
                 case PACKET_IN:
+                    break;
                 case PORT_STATUS:
+                    break;
                 case BARRIER_REPLY:
+                    break;
                 case GET_CONFIG_REPLY:
+                    break;
                 case STATS_REPLY:
+                    break;
                 case QUEUE_GET_CONFIG_REPLY:
                     this.illegalMessageReceived(h, m);
                     break;
