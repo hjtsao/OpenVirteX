@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
 import net.onrc.openvirtex.api.service.handlers.monitoring.ListVirtualNetworks;
+import net.onrc.openvirtex.core.OpenVirteX;
 import net.onrc.openvirtex.core.OpenVirteXController;
 import net.onrc.openvirtex.elements.OVXMap;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
@@ -352,6 +353,16 @@ public class ControllerChannelHandler extends OFChannelHandler {
                         break;
                     case GROUP_FEATURES:
                         break;
+                    case DESC:
+                        OFDescStatsReply ofDescStatsReply = OFFactoryVer13.INSTANCE.buildDescStatsReply()
+                                .setDpDesc(OVXSwitch.DPDESCSTRING)
+                                .setHwDesc("Virtual Hardware")
+                                .setMfrDesc("Libera Team")
+                                .setSerialNum(h.sw.getSwitchName())
+                                .setSwDesc(OpenVirteX.VERSION)
+                                .setXid(ofStatsRequest.getXid())
+                                .build();
+                        h.channel.write(Collections.singletonList(ofDescStatsReply));
                     default:
                         break;
                 }
