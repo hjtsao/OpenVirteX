@@ -83,6 +83,7 @@ public class OVXFlowTable implements FlowTable {
         this.cookieMap = new ConcurrentHashMap<Integer, Long>();
         this.cookieCounter = new AtomicInteger(1);
         this.freeList = new LinkedList<Long>();
+        this.flowList = new LinkedList<>();
         this.vswitch = vsw;
 
          /* initialise stats */
