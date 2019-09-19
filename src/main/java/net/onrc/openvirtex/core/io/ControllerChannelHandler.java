@@ -21,10 +21,7 @@ package net.onrc.openvirtex.core.io;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 
 import net.onrc.openvirtex.api.service.handlers.monitoring.ListVirtualNetworks;
@@ -54,6 +51,7 @@ import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.protocol.ver13.OFTypeSerializerVer13;
+import org.projectfloodlight.openflow.types.TableId;
 import sun.security.acl.WorldGroupImpl;
 
 //import org.openflow.vendor.nicira.OFNiciraVendorData;
@@ -315,9 +313,26 @@ public class ControllerChannelHandler extends OFChannelHandler {
             void processOFStatsRequest(final ControllerChannelHandler h,
                                        final OVXMessage m) {
                 OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
+                OVXSwitch ovxSwitch = (OVXSwitch)h.sw;
                 switch (ofStatsRequest.getStatsType()) {
+                    case TABLE:
+                        // TODO: Currently only table 0, no lookup cound and matched count.
+                        TableId tableId = TableId.of(0);
+                        List<OFTableStatsEntry> ofTableStatsEntryList = new LinkedList<>();
+                        OFTableStatsEntry ofTableStatsEntry = OFFactoryVer13.INSTANCE.buildTableStatsEntry()
+                                .setTableId(tableId)
+                                .setActiveCount(((OVXFlowTable) ovxSwitch.getFlowTable()).getFlowStatsEntryList().size())
+                                .setLookupCount(org.projectfloodlight.openflow.types.U64.of(0))
+                                .setMatchedCount(org.projectfloodlight.openflow.types.U64.of(0))
+                                .build();
+                        ofTableStatsEntryList.add(ofTableStatsEntry);
+                        OFTableStatsReply ofTableStatsReply = OFFactoryVer13.INSTANCE.buildTableStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .setEntries(ofTableStatsEntryList)
+                                .build();
+                        h.channel.write(Collections.singletonList(ofTableStatsReply));
+                        break;
                     case FLOW:
-                        OVXSwitch ovxSwitch = (OVXSwitch)h.sw;
                         if(((OVXFlowTable)ovxSwitch.getFlowTable()).getFlowStatsEntryList() != null) {
                             OFFlowStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
                                     .setXid(ofStatsRequest.getXid())
@@ -331,7 +346,16 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             h.channel.write(Collections.singletonList(ofFlowStatsReply));
                         }
                         break;
+                    case METER:
+                        // TODO: Fix this when we support meter
+                        OFMeterStatsReply ofMeterStatsReply = OFFactoryVer13.INSTANCE.buildMeterStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .build();
+                        h.channel.write(Collections.singletonList(ofMeterStatsReply));
+
+                        break;
                     case METER_FEATURES:
+                        // TODO: Fix this when we support meter
                         // TODO: Should check which physical switch is map to current OVX switch then get meter feature.
                         OFMeterFeatures ofMeterFeatures = OFFactoryVer13.INSTANCE.buildMeterFeatures()
                                 .setBandTypes(0)
@@ -347,8 +371,21 @@ public class ControllerChannelHandler extends OFChannelHandler {
                         h.channel.write(Collections.singletonList(ofStatsReply));
 
                         break;
-                    case GROUP_FEATURES:
+                    case GROUP:
+                        // TODO: Fix this when we support group
+                        OFGroupStatsReply ofGroupStatsReply = OFFactoryVer13.INSTANCE.buildGroupStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .build();
+                        h.channel.write(Collections.singletonList(ofGroupStatsReply));
                         break;
+                    case GROUP_DESC:
+                        // TODO: Fix this when we support group
+                        OFGroupDescStatsReply ofGroupDescStatsReply = OFFactoryVer13.INSTANCE.buildGroupDescStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .build();
+                        h.channel.write(Collections.singletonList(ofGroupDescStatsReply));
+                        break;
+
                     case DESC:
                         OFDescStatsReply ofDescStatsReply = OFFactoryVer13.INSTANCE.buildDescStatsReply()
                                 .setDpDesc(OVXSwitch.DPDESCSTRING)
