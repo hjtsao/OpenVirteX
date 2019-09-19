@@ -22,7 +22,9 @@ package net.onrc.openvirtex.core.io;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
 import net.onrc.openvirtex.api.service.handlers.monitoring.ListVirtualNetworks;
@@ -171,7 +173,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 h.channel.write(Collections.singletonList(reply));
                 h.log.info("Send Port Descriptions to dpid {}", h.channel.getRemoteAddress());
 
-                h.setState(ACTIVE);
+                h.setState(WAIT_GET_CONFIG_RQ);
             }
 
             @Override
@@ -184,7 +186,31 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 h.channel.disconnect();
             }
         },
+        WAIT_GET_CONFIG_RQ(false) {
+            @Override
+            void processOFGetConfigRequest(final ControllerChannelHandler h,
+                                           final OVXMessage m){
+                Set<OFConfigFlags> flagsSet = new HashSet<>();
+                flagsSet.add(OFConfigFlags.FRAG_NORMAL);
+                OFGetConfigReply ofGetConfigReply = OFFactoryVer13.INSTANCE.buildGetConfigReply()
+                        .setXid(m.getOFMessage().getXid())
+                        .setMissSendLen(0xffff)
+                        .setFlags(flagsSet)
+                        .build();
+                h.channel.write(Collections.singletonList(ofGetConfigReply));
+                h.setState(ACTIVE);
+            }
 
+            @Override
+            void processOFError(final ControllerChannelHandler h,
+                                final OVXMessage m) throws IOException {
+                h.log.error(
+                        "Error waiting for Get Config (type:{})",
+                        ((OFErrorMsg)m.getOFMessage()).getErrType());
+
+                h.channel.disconnect();
+            }
+        },
 
         ACTIVE(true) {
 
@@ -240,16 +266,16 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             // The enum is based on OpenFlow1.0
                             // In OpenFlow1.3, BARRIER_REQUEST should be 20, not 18
                             // TODO: actually implement barrier contract
-                            /*final OFBarrierReply ofBarrierReply = OFFactories.getFactory(m.getOFMessage().getVersion())
+                            final OFBarrierReply ofBarrierReply = OFFactories.getFactory(m.getOFMessage().getVersion())
                                     .buildBarrierReply()
                                     .setXid(m.getOFMessage().getXid())
                                     .build();
 
 
-                            h.channel.write(Collections.singletonList(ofBarrierReply));*/
+                            h.channel.write(Collections.singletonList(ofBarrierReply));
 
                             // Currently treat this as OF13_STATS_REQUEST
-                            OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
+                            /*OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
                             switch(ofStatsRequest.getStatsType()){
                                 case FLOW:
                                     final OFStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
@@ -265,7 +291,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                                     break;
                                 default:
                                     break;
-                            }
+                            }*/
                             break;
 
                         case SET_CONFIG:
