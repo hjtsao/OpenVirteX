@@ -373,7 +373,6 @@ public class OVXFlowTable implements FlowTable {
         OFFlowMod ofFlowMod = (OFFlowMod)flowmod.getOFMessage();
         org.projectfloodlight.openflow.types.U64.of(0);
         OFFlowStatsEntry ofFlowStatsEntry = OFFactoryVer13.INSTANCE.buildFlowStatsEntry()
-                .setActions(ofFlowMod.getActions())
                 .setByteCount(org.projectfloodlight.openflow.types.U64.of(0))
                 .setCookie(org.projectfloodlight.openflow.types.U64.of(cookie))
                 .setDurationNsec(0)
