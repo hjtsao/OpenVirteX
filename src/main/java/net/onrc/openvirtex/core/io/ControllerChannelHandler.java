@@ -31,6 +31,7 @@ import net.onrc.openvirtex.api.service.handlers.monitoring.ListVirtualNetworks;
 import net.onrc.openvirtex.core.OpenVirteX;
 import net.onrc.openvirtex.core.OpenVirteXController;
 import net.onrc.openvirtex.elements.OVXMap;
+import net.onrc.openvirtex.elements.datapath.OVXFlowTable;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import net.onrc.openvirtex.elements.network.OVXNetwork;
 import net.onrc.openvirtex.exceptions.ControllerStateException;
@@ -53,6 +54,7 @@ import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.protocol.ver13.OFTypeSerializerVer13;
+import sun.security.acl.WorldGroupImpl;
 
 //import org.openflow.vendor.nicira.OFNiciraVendorData;
 //import org.openflow.vendor.nicira.OFRoleRequestVendorData;
@@ -238,28 +240,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             this.processOFFeaturesRequest(h, m);
                             break;
                         case BARRIER_REQUEST:
-                            // The enum is based on OpenFlow1.0
-                            // In OpenFlow1.3, BARRIER_REQUEST should be 20, not 18
-                            // TODO: actually implement barrier contract
                             processOFBarrierRequest(h, m);
-                            // Currently treat this as OF13_STATS_REQUEST
-                            /*OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
-                            switch(ofStatsRequest.getStatsType()){
-                                case FLOW:
-                                    final OFStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
-                                            .setXid(m.getOFMessage().getXid())
-                                            .build();
-                                    h.channel.write(Collections.singletonList(ofFlowStatsReply));
-                                    break;
-                                case GROUP:
-                                    final OFStatsReply ofGroupStatsReply = OFFactoryVer13.INSTANCE.buildGroupStatsReply()
-                                            .setXid(m.getOFMessage().getXid())
-                                            .build();
-                                    h.channel.write(Collections.singletonList(ofGroupStatsReply));
-                                    break;
-                                default:
-                                    break;
-                            }*/
                             break;
 
                         case SET_CONFIG:
@@ -281,10 +262,12 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             this.processOFStatsRequest(h, m);
                             break;
                         case FLOW_MOD:
-                            this.processOFFlowMod(h, m);
+                            h.sw.handleIO(m, h.channel);
+                            //processOFFlowMod(h, m);
                             break;
                         case GET_CONFIG_REQUEST:
-                            h.sw.handleIO(m, h.channel);
+                            //h.sw.handleIO(m, h.channel);
+                            processOFGetConfigRequest(h, m);
                             break;
                         case EXPERIMENTER:
                             processOFVendor(h, m);
@@ -334,6 +317,12 @@ public class ControllerChannelHandler extends OFChannelHandler {
                 OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
                 switch (ofStatsRequest.getStatsType()) {
                     case FLOW:
+                        OVXSwitch ovxSwitch = (OVXSwitch)h.sw;
+                        OFFlowStatsReply ofFlowStatsReply = OFFactoryVer13.INSTANCE.buildFlowStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .setEntries(((OVXFlowTable)ovxSwitch.getFlowTable()).getFlowStatsEntryList())
+                                .build();
+                        h.channel.write(Collections.singletonList(ofFlowStatsReply));
                         break;
                     case METER_FEATURES:
                         // TODO: Should check which physical switch is map to current OVX switch then get meter feature.

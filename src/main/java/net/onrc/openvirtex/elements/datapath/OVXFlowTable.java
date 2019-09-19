@@ -33,6 +33,7 @@ import net.onrc.openvirtex.exceptions.MappingException;
 import net.onrc.openvirtex.exceptions.SwitchMappingException;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
@@ -50,6 +51,7 @@ public class OVXFlowTable implements FlowTable {
     protected ConcurrentHashMap<Long, OVXFlowMod> flowmodMap;
     // Reverse map of FlowMod hashcode to cookie
     protected ConcurrentHashMap<Integer, Long> cookieMap;
+    protected List<OFFlowStatsEntry> flowList;
 
     /**
      * Temporary solution that should be replaced by something that doesn't
@@ -169,7 +171,9 @@ public class OVXFlowTable implements FlowTable {
                     int overlap = fe.compare(fm.getFlowMod().getMatch(), strict);
                     if (overlap == OVXFlowEntry.EQUAL) {
                         this.cookieMap.remove(entry.getValue().hashCode());
+                        removeFlowStatsEntry(entry.getKey());
                         itr.remove();
+
                     }
                 }
                 return true;
@@ -366,7 +370,24 @@ public class OVXFlowTable implements FlowTable {
         log.debug("addFlowMod Cookie = " + U64.of(cookie).toString());
         log.debug("HashCode = " + U32.of(flowmod.getFlowMod().hashCode()).toString());
         log.debug(flowmod.getFlowMod().toString());
-
+        OFFlowMod ofFlowMod = (OFFlowMod)flowmod.getOFMessage();
+        org.projectfloodlight.openflow.types.U64.of(0);
+        OFFlowStatsEntry ofFlowStatsEntry = OFFactoryVer13.INSTANCE.buildFlowStatsEntry()
+                .setActions(ofFlowMod.getActions())
+                .setByteCount(org.projectfloodlight.openflow.types.U64.of(0))
+                .setCookie(org.projectfloodlight.openflow.types.U64.of(cookie))
+                .setDurationNsec(0)
+                .setDurationSec(0)
+                .setFlags(ofFlowMod.getFlags())
+                .setHardTimeout(ofFlowMod.getHardTimeout())
+                .setIdleTimeout(ofFlowMod.getIdleTimeout())
+                .setInstructions(ofFlowMod.getInstructions())
+                .setMatch(ofFlowMod.getMatch())
+                .setPacketCount(org.projectfloodlight.openflow.types.U64.of(0))
+                .setPriority(ofFlowMod.getPriority())
+                .setTableId(ofFlowMod.getTableId())
+                .build();
+        this.flowList.add(ofFlowStatsEntry);
         this.flowmodMap.put(cookie, flowmod);
         this.cookieMap.put(flowmod.hashCode(), cookie);
         return cookie;
@@ -437,4 +458,18 @@ public class OVXFlowTable implements FlowTable {
         return Collections.unmodifiableCollection(this.flowmodMap.values());
     }
 
+    public List<OFFlowStatsEntry> getFlowStatsEntryList() {
+        return flowList;
+    }
+
+    private void removeFlowStatsEntry(long cookie) {
+        for(OFFlowStatsEntry ofFlowStatsEntry : flowList) {
+            if(ofFlowStatsEntry.getCookie().equals(org.projectfloodlight.openflow.types.U64.of(cookie))){
+                flowList.remove(ofFlowStatsEntry);
+                return;
+            }
+        }
+        log.error("Recevied FlowMod with type Delete but no actual rule in OVXSwitch flow list");
+        return;
+    }
 }

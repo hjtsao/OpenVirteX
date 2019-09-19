@@ -61,14 +61,6 @@ public class OVXFlowMod extends OVXMessage implements Devirtualizable {
 
     @Override
     public void devirtualize(final OVXSwitch sw) {
-        //this.log.info("devirtualize");
-        //this.log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        //this.log.info(this.getFlowMod().toString());
-        //this.log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        //this.log.info(this.getOFMessage().toString());
-
-
-
          /* Drop LLDP-matching messages sent by some applications */
         if (this.getFlowMod().getMatch().get(MatchField.ETH_TYPE) == EthType.LLDP) {
             return;
@@ -82,15 +74,9 @@ public class OVXFlowMod extends OVXMessage implements Devirtualizable {
             bufferId = ((OFPacketIn)sw.getFromBufferMap(this.getFlowMod().getBufferId().getInt()).getOFMessage())
                     .getBufferId().getInt();
         }
-        //OFMatch에서 inport의 기본값은 0으로 설정되기 때문, 그러나 OpenFlowj에서는 MatchField가 존재하지 않으면
-        //필드 자체가 없기 때문에 inport값을 알 수 없다.
-        //ONOS인 경우 스위치가 연결되면 기본적인 설정 FlowMod 메시지를 보낸다(ARP, LLDP, IPv4정보를 Controller로 보내는 설정)
-        //거기엔 in_port 정보가 없다 추후 이부분의 루틴 구현해야함
 
-        /*if(!((OFFlowMod)this.getOFMessage()).getMatch().isExact(MatchField.IN_PORT)) {
-            this.log.info("No IN_PORT in MatchField");
-            return;
-        }*/
+        // The default value of in_port is 0 in OFMatch, but is null in OpenFlowJ is it doesn't present in MatchField
+        // If using ONOS, some basic FlowMod messages (like ARP, LLDP, BDDP, IPv4...) doesn't contain in_port
 
         short inport = 0;
 
@@ -101,9 +87,7 @@ public class OVXFlowMod extends OVXMessage implements Devirtualizable {
         }
         boolean pflag = ft.handleFlowMods(this.clone());
 
-
         //((OVXFlowTable) ft).dump();
-
 
         OVXMatch ovxMatch = new OVXMatch(this.getFlowMod().getMatch());
         ovxCookie = ((OVXFlowTable) ft).getCookie(this, false);
