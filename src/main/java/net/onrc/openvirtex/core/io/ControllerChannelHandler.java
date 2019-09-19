@@ -328,6 +328,38 @@ public class ControllerChannelHandler extends OFChannelHandler {
 
             }
             @Override
+            void processOFStatsRequest(final ControllerChannelHandler h,
+                                       final OVXMessage m) {
+                OFStatsRequest ofStatsRequest = (OFStatsRequest) m.getOFMessage();
+                switch (ofStatsRequest.getStatsType()) {
+                    case FLOW:
+                        break;
+                    case METER_FEATURES:
+                        // TODO: Should check which physical switch is map to current OVX switch then get meter feature.
+                        OFMeterFeatures ofMeterFeatures = OFFactoryVer13.INSTANCE.buildMeterFeatures()
+                                .setBandTypes(0)
+                                .setMaxMeter(0)
+                                .setMaxColor((short)0)
+                                .setCapabilities(0)
+                                .setMaxBands((short)0)
+                                .build();
+                        OFStatsReply ofStatsReply = OFFactoryVer13.INSTANCE.buildMeterFeaturesStatsReply()
+                                .setXid(ofStatsRequest.getXid())
+                                .setFeatures(ofMeterFeatures)
+                                .build();
+                        h.channel.write(Collections.singletonList(ofStatsReply));
+
+                        break;
+                    case GROUP_FEATURES:
+                        break;
+                    default:
+                        break;
+                }
+
+
+            }
+
+            @Override
             void processOFGetConfigRequest(final ControllerChannelHandler h,
                                            final OVXMessage m){
                 Set<OFConfigFlags> flagsSet = new HashSet<>();
