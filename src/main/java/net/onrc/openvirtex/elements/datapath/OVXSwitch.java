@@ -589,14 +589,11 @@ public abstract class OVXSwitch extends Switch<OVXPort> implements Persistable {
         /*
          * Save the channel the msg came in on
          */
-        //msg.setXid(channelMux.translate(msg.getXid(), channel));
         msg.setOFMessage(
                 msg.getOFMessage().createBuilder()
                         .setXid(channelMux.translate((int)msg.getOFMessage().getXid(), channel))
                         .build()
         );
-
-        //OVXSwitch2.log.error(msg.getOFMessage().toString());
 
         try {
             /*

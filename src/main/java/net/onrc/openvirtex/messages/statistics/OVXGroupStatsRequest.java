@@ -21,10 +21,14 @@ package net.onrc.openvirtex.messages.statistics;
 
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import net.onrc.openvirtex.messages.OVXMessageUtil;
+import net.onrc.openvirtex.messages.OVXStatisticsReply;
 import net.onrc.openvirtex.messages.OVXStatisticsRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+
+import java.util.Collections;
 
 public class OVXGroupStatsRequest extends OVXStatistics implements DevirtualizableStatistic {
 
@@ -39,9 +43,12 @@ public class OVXGroupStatsRequest extends OVXStatistics implements Devirtualizab
 
     @Override
     public void devirtualizeStatistic(OVXSwitch sw, OVXStatisticsRequest msg) {
-        //This Request message is not supported. (FeaturesReply (Group is unflagged)
-        //Send BadRequest Message
+        // TODO: Fix this when we support group
+        OFGroupStatsReply ofGroupStatsReply = OFFactoryVer13.INSTANCE.buildGroupStatsReply()
+                .setXid(msg.getOFMessage().getXid())
+                .build();
+        OVXStatisticsReply ovxStatisticsReply = new OVXStatisticsReply(ofGroupStatsReply);
 
-        sw.sendMsg(OVXMessageUtil.makeErrorMsg(OFBadRequestCode.BAD_TYPE, msg), sw);
+        sw.sendMsg(ovxStatisticsReply, sw);
     }
 }

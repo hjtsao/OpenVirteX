@@ -22,8 +22,10 @@ package net.onrc.openvirtex.messages;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.projectfloodlight.openflow.protocol.OFBarrierReply;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 
 public class OVXBarrierRequest extends OVXMessage implements Devirtualizable {
 
@@ -33,15 +35,14 @@ public class OVXBarrierRequest extends OVXMessage implements Devirtualizable {
         super(msg);
     }
 
-
-    public OFBarrierRequest getBarrierReply() {
-        return (OFBarrierRequest)this.getOFMessage();
-    }
-
-
     @Override
     public void devirtualize(final OVXSwitch sw) {
         //this.log.info("devirtualize");
+        OFBarrierReply ofBarrierReply = OFFactoryVer13.INSTANCE.buildBarrierReply()
+                .setXid(this.getOFMessage().getXid())
+                .build();
+        final OVXBarrierReply ovxBarrierReply = new OVXBarrierReply(ofBarrierReply);
+        sw.sendMsg(ovxBarrierReply, sw);
 
     }
 }

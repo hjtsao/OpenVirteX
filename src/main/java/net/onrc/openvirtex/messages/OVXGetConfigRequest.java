@@ -21,9 +21,15 @@ package net.onrc.openvirtex.messages;
 
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
+import org.projectfloodlight.openflow.protocol.OFConfigFlags;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class OVXGetConfigRequest extends OVXMessage implements Devirtualizable {
     public OVXGetConfigRequest(OFMessage msg) {
@@ -33,13 +39,17 @@ public class OVXGetConfigRequest extends OVXMessage implements Devirtualizable {
     @Override
     public void devirtualize(final OVXSwitch sw) throws OFParseError {
 
+        Set<OFConfigFlags> flagsSet = new HashSet<>();
+        flagsSet.add(OFConfigFlags.FRAG_NORMAL);
         OFGetConfigReply reply = this.factory.buildGetConfigReply()
-                .setMissSendLen(sw.getMissSendLen())
+                //.setMissSendLen(sw.getMissSendLen())
+                .setMissSendLen(65535)
+                .setFlags(flagsSet)
                 .setXid(this.getOFMessage().getXid())
                 .build();
 
-        final OVXGetConfigReply ovxGetConfigReply2 = new OVXGetConfigReply(reply);
+        final OVXGetConfigReply ovxGetConfigReply = new OVXGetConfigReply(reply);
 
-        sw.sendMsg(ovxGetConfigReply2, sw);
+        sw.sendMsg(ovxGetConfigReply, sw);
     }
 }

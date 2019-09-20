@@ -72,10 +72,13 @@ public class OVXStatisticsRequest extends OVXMessage implements Devirtualizable 
                 OVXMeterStatsRequest ovxMeterStatsRequest = new OVXMeterStatsRequest(msg);
                 this.statistics = ovxMeterStatsRequest;
                 break;
-            //Unsupported so sending ERROR msg
+            case METER_FEATURES:
+                break;
             case GROUP:
                 OVXGroupStatsRequest ovxGroupStatsRequest = new OVXGroupStatsRequest(msg);
                 this.statistics = ovxGroupStatsRequest;
+                break;
+            case GROUP_FEATURES:
                 break;
             case GROUP_DESC:
                 OVXGroupDescStatsRequest ovxGroupDescStatsRequest = new OVXGroupDescStatsRequest(msg);

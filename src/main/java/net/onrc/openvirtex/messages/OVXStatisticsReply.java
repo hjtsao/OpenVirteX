@@ -75,6 +75,17 @@ public class OVXStatisticsReply extends OVXMessage implements Virtualizable {
                 OVXMeterStatsReply ovxMeterStatsReply = new OVXMeterStatsReply(msg);
                 this.statistics = ovxMeterStatsReply;
                 break;
+            case METER_FEATURES:
+                OVXMeterFeatureStatsReply ovxMeterFeatureStatsReply = new OVXMeterFeatureStatsReply(msg);
+                this.statistics = ovxMeterFeatureStatsReply;
+                break;
+            case GROUP:
+                OVXGroupStatsReply ovxGroupStatsReply = new OVXGroupStatsReply(msg);
+                this.statistics = ovxGroupStatsReply;
+            case GROUP_DESC:
+                OVXGroupDescStatsReply ovxGroupDescStatsReply = new OVXGroupDescStatsReply(msg);
+                this.statistics = ovxGroupDescStatsReply;
+                break;
             default:
                 this.log.info("Not supporting StatsType " + ofStatsReply.getStatsType());
                 this.statistics = null;

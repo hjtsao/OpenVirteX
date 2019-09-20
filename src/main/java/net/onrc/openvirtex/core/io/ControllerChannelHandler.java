@@ -238,7 +238,8 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             this.processOFFeaturesRequest(h, m);
                             break;
                         case BARRIER_REQUEST:
-                            processOFBarrierRequest(h, m);
+                            h.sw.handleIO(m, h.channel);
+                            //processOFBarrierRequest(h, m);
                             break;
 
                         case SET_CONFIG:
@@ -257,15 +258,16 @@ public class ControllerChannelHandler extends OFChannelHandler {
                             this.processOFQueueGetConfigRequest(h, m);
                             break;
                         case STATS_REQUEST:
-                            this.processOFStatsRequest(h, m);
+                            h.sw.handleIO(m, h.channel);
+                            //this.processOFStatsRequest(h, m);
                             break;
                         case FLOW_MOD:
                             h.sw.handleIO(m, h.channel);
                             //processOFFlowMod(h, m);
                             break;
                         case GET_CONFIG_REQUEST:
-                            //h.sw.handleIO(m, h.channel);
-                            processOFGetConfigRequest(h, m);
+                            h.sw.handleIO(m, h.channel);
+                            //processOFGetConfigRequest(h, m);
                             break;
                         case EXPERIMENTER:
                             processOFVendor(h, m);

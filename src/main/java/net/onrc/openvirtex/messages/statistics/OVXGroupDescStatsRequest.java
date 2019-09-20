@@ -21,13 +21,14 @@ package net.onrc.openvirtex.messages.statistics;
 
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import net.onrc.openvirtex.messages.OVXMessageUtil;
+import net.onrc.openvirtex.messages.OVXStatisticsReply;
 import net.onrc.openvirtex.messages.OVXStatisticsRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
-import org.projectfloodlight.openflow.protocol.OFGroupDescStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+
+import java.util.Collections;
 
 public class OVXGroupDescStatsRequest extends OVXStatistics implements DevirtualizableStatistic {
     private Logger log = LogManager.getLogger(OVXGroupDescStatsRequest.class.getName());
@@ -41,9 +42,12 @@ public class OVXGroupDescStatsRequest extends OVXStatistics implements Devirtual
 
     @Override
     public void devirtualizeStatistic(OVXSwitch sw, OVXStatisticsRequest msg) {
-        //This Request message is not supported. (FeaturesReply (Group is unflagged)
-        //Send BadRequest Message
+        // TODO: Fix this when we support group
+        OFGroupDescStatsReply ofGroupDescStatsReply = OFFactoryVer13.INSTANCE.buildGroupDescStatsReply()
+                .setXid(msg.getOFMessage().getXid())
+                .build();
+        OVXStatisticsReply ovxStatisticsReply = new OVXStatisticsReply(ofGroupDescStatsReply);
 
-        sw.sendMsg(OVXMessageUtil.makeErrorMsg(OFBadRequestCode.BAD_TYPE, msg), sw);
+        sw.sendMsg(ovxStatisticsReply, sw);
     }
 }
