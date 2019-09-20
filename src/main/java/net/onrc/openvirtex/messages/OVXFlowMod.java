@@ -99,15 +99,15 @@ public class OVXFlowMod extends OVXMessage implements Devirtualizable {
                 .build()
         );
 
-        for (final OFAction act : this.getFlowMod().getActions()) {
+        for (final OFAction ofAction : this.getFlowMod().getActions()) {
             try {
-                OVXAction action2 = OVXActionUtil.wrappingOVXAction(act);
+                OVXAction ovxAction = OVXActionUtil.wrappingOVXAction(ofAction);
 
-                ((VirtualizableAction) action2).virtualize(sw, this.approvedActions, ovxMatch);
+                ((VirtualizableAction) ovxAction).virtualize(sw, this.approvedActions, ovxMatch);
 
             } catch (final ActionVirtualizationDenied e) {
                 this.log.debug("Action {} could not be virtualized; error: {}",
-                        act, e.getMessage());
+                        ofAction, e.getMessage());
                 ft.deleteFlowMod(ovxCookie);
                 sw.sendMsg(OVXMessageUtil.makeError(e.getErrorCode(), this), sw);
                 return;
@@ -117,7 +117,7 @@ public class OVXFlowMod extends OVXMessage implements Devirtualizable {
                 // TODO perhaps send error message to controller
                 return;
             } catch (final NullPointerException e) {
-                this.log.debug("Action {} could not be supported", act);
+                this.log.debug("Action {} could not be supported", ofAction);
                 return;
             }
         }

@@ -19,6 +19,7 @@
  */
 package net.onrc.openvirtex.messages.statistics;
 
+import net.onrc.openvirtex.elements.datapath.OVXFlowTable;
 import net.onrc.openvirtex.elements.datapath.OVXSingleSwitch;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import net.onrc.openvirtex.elements.datapath.PhysicalSwitch;
@@ -32,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
 
@@ -46,6 +48,7 @@ public class OVXFlowStatsRequest extends OVXStatistics implements Devirtualizabl
     protected OFPort outPort;
     protected Match match;
     protected TableId tableId;
+    protected OFGroup outGroup;
 
     public OVXFlowStatsRequest(OFMessage ofMessage) {
         super(OFStatsType.FLOW);
@@ -54,29 +57,34 @@ public class OVXFlowStatsRequest extends OVXStatistics implements Devirtualizabl
         this.outPort = this.ofFlowStatsRequest.getOutPort();
         this.match = this.ofFlowStatsRequest.getMatch();
         this.tableId = this.ofFlowStatsRequest.getTableId();
+        this.outGroup = ofFlowStatsRequest.getOutGroup();
     }
 
     @Override
     public void devirtualizeStatistic(final OVXSwitch sw, final OVXStatisticsRequest msg) {
-//        this.log.info("devirtualizeStatistic");
-
         List<OFFlowStatsEntry> replies = new LinkedList<OFFlowStatsEntry>();
         HashSet<Long> uniqueCookies = new HashSet<Long>();
         int tid = sw.getTenantId();
 
-        if (this.outPort.getPortNumber() == OFPort.ANY.getPortNumber()) {
+        if(this.tableId.equals(TableId.ALL)) {
+            if (this.outPort.equals(OFPort.ANY)) {
+                replies = ((OVXFlowTable) sw.getFlowTable()).getFlowStatsEntryList();
+            }
+        } else {
+            // Only search in specified table
+        }
+        OFFlowStatsReply flowStatsReply = OFFactories.getFactory(sw.getOfVersion()).buildFlowStatsReply()
+                .setXid(msg.getOFMessage().getXid())
+                .setEntries(replies)
+                .build();
+
+        OVXStatisticsReply reply = new OVXStatisticsReply(flowStatsReply);
+
+        /*if (this.outPort.getPortNumber() == OFPort.ANY.getPortNumber()) {
             for (PhysicalSwitch psw : getPhysicalSwitches(sw)) {
-//                this.log.info("getTenantId " + tid);
                 List<OFFlowStatsEntry> reps = psw.getFlowStats(tid);
                 if (reps != null) {
-//                    this.log.info("reps != null");
-
                     for (OFFlowStatsEntry stat : reps) {
-
-//                        this.log.info(stat.toString());
-
-//                        this.log.info("stat.getCookie() = " + stat.getCookie().toString());
-
                         if (!uniqueCookies.contains(stat.getCookie().getValue())) {
                             OVXFlowMod origFM;
                             try {
@@ -116,7 +124,7 @@ public class OVXFlowStatsRequest extends OVXStatistics implements Devirtualizabl
             OVXStatisticsReply reply = new OVXStatisticsReply(flowStatsReply);
 
             sw.sendMsg(reply, sw);
-        }
+        }*/
     }
 
     private List<PhysicalSwitch> getPhysicalSwitches(OVXSwitch sw) {

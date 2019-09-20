@@ -19,6 +19,7 @@
  */
 package net.onrc.openvirtex.elements.datapath;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,7 +52,8 @@ public class OVXFlowTable implements FlowTable {
     protected ConcurrentHashMap<Long, OVXFlowMod> flowmodMap;
     // Reverse map of FlowMod hashcode to cookie
     protected ConcurrentHashMap<Integer, Long> cookieMap;
-    protected List<OFFlowStatsEntry> flowList;
+    protected ConcurrentHashMap<Long, Long> flowStartTime;
+    protected ConcurrentHashMap<OFFlowStatsEntry, Long> flowStatsEntryMap;
 
     /**
      * Temporary solution that should be replaced by something that doesn't
@@ -81,9 +83,10 @@ public class OVXFlowTable implements FlowTable {
     public OVXFlowTable(OVXSwitch vsw) {
         this.flowmodMap = new ConcurrentHashMap<Long, OVXFlowMod>();
         this.cookieMap = new ConcurrentHashMap<Integer, Long>();
+        this.flowStartTime = new ConcurrentHashMap<>();
         this.cookieCounter = new AtomicInteger(1);
         this.freeList = new LinkedList<Long>();
-        this.flowList = new LinkedList<>();
+        this.flowStatsEntryMap = new ConcurrentHashMap<>();
         this.vswitch = vsw;
 
          /* initialise stats */
@@ -200,25 +203,13 @@ public class OVXFlowTable implements FlowTable {
 
 
         if (fm.getFlowMod().getFlags().contains(OFFlowModFlags.CHECK_OVERLAP)){
-            //System.out.println(" OFPFF_CHECK_OVERLAP");
-
             OVXFlowEntry fe = new OVXFlowEntry();
             for (OVXFlowMod fmod : this.flowmodMap.values()) {
 
                 fe.setOVXFlowMod(fmod);
                 int res = fe.compare(fm.getFlowMod().getMatch(), false);
-
-                //System.out.println("------------------------");
-                //System.out.println(res);
-
-                //System.out.println(fm.getFlowMod().getPriority() + " " + fe.getPriority());
-
-//                this.log.info("res : " + res);
                 if ((res != OVXFlowEntry.DISJOINT)
                         & (fm.getFlowMod().getPriority() == fe.getPriority())) {
-
-                    //System.out.println("true");
-
                     this.vswitch.sendMsg(OVXMessageUtil.makeErrorMsg(
                             OFFlowModFailedCode.OVERLAP, fm),
                             this.vswitch);
@@ -237,47 +228,24 @@ public class OVXFlowTable implements FlowTable {
      * @return true if FlowMod should be written South
      */
     private boolean doFlowModModify(OVXFlowMod fm) {
-        log.debug("doFlowModModify");
-
         OVXFlowEntry fe = new OVXFlowEntry();
         int res;
         for (Map.Entry<Long, OVXFlowMod> fmod : this.flowmodMap.entrySet()) {
             fe.setOVXFlowMod(fmod.getValue());
-
-            log.debug(" FlowEntry [" + U32.of(fe.getOVXFlowMod().hashCode()).toString() + "]");
-
-            log.debug("OVXFlowMod [" + U32.of(fm.hashCode()).toString() + "]");
-
             res = fe.compare(fm.getFlowMod().getMatch(), true);
-            //System.out.println("res = " + res);
-
             //replace table entry that strictly matches with given FlowMod.
             if (res == OVXFlowEntry.EQUAL) {
-                //System.out.println("res == OVXFlowEntry2.EQUAL");
-
                 long c = fmod.getKey();
-                //System.out.println("replacing equivalent FlowEntry [cookie={}]");
-                //log.info("replacing equivalent FlowEntry Cookie={}", U64.of(c).toString());
                 OVXFlowMod old = this.flowmodMap.get(c);
-
-                if(old!=null)
-                    log.debug("remove old FlowMod [" + U32.of(old.hashCode()).toString() +"]");
-
                 this.cookieMap.remove(old.hashCode());
                 this.addFlowMod(fm, c);
                 // return cookie to pool and use the previous cookie
                 return true;
-            }else{
-                //System.out.println("res != OVXFlowEntry2.EQUAL");
             }
         }
         /* make a new cookie, add FlowMod */
-        //System.out.println("make a new cookie, add FlowMod");
-        //System.out.println("Cookie = " + this.getCookie());
 
         long newc = this.getCookie();
-        log.debug("make a new [cookie={}]", U64.of(newc).toString());
-
         this.addFlowMod(fm.clone(), newc);
         return true;
     }
@@ -387,7 +355,9 @@ public class OVXFlowTable implements FlowTable {
                 .setPriority(ofFlowMod.getPriority())
                 .setTableId(ofFlowMod.getTableId())
                 .build();
-        this.flowList.add(ofFlowStatsEntry);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        this.flowStartTime.put(cookie, timestamp.getTime());
+        this.flowStatsEntryMap.put(ofFlowStatsEntry, cookie);
         this.flowmodMap.put(cookie, flowmod);
         this.cookieMap.put(flowmod.hashCode(), cookie);
         return cookie;
@@ -459,13 +429,24 @@ public class OVXFlowTable implements FlowTable {
     }
 
     public List<OFFlowStatsEntry> getFlowStatsEntryList() {
-        return flowList;
+        List<OFFlowStatsEntry> result = new LinkedList<>();
+        for(Map.Entry<OFFlowStatsEntry, Long> entry: flowStatsEntryMap.entrySet()) {
+            OFFlowStatsEntry ofFlowStatsEntry = entry.getKey();
+            Long cookie = entry.getValue();
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            Long newDurationMsec = (timestamp.getTime() - flowStartTime.get(cookie));
+            result.add(ofFlowStatsEntry.createBuilder()
+                    .setDurationSec(newDurationMsec/ 1000)
+                    .setDurationNsec(newDurationMsec * 1000)
+                    .build());
+        }
+        return result;
     }
 
     private void removeFlowStatsEntry(long cookie) {
-        for(OFFlowStatsEntry ofFlowStatsEntry : flowList) {
-            if(ofFlowStatsEntry.getCookie().equals(org.projectfloodlight.openflow.types.U64.of(cookie))){
-                flowList.remove(ofFlowStatsEntry);
+        for(Map.Entry<OFFlowStatsEntry, Long> entry: flowStatsEntryMap.entrySet()) {
+            if(entry.getValue().equals(cookie)){
+                flowStatsEntryMap.remove(entry.getKey());
                 return;
             }
         }
