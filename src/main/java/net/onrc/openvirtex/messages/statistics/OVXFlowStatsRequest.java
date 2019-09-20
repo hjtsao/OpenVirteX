@@ -79,6 +79,7 @@ public class OVXFlowStatsRequest extends OVXStatistics implements Devirtualizabl
                 .build();
 
         OVXStatisticsReply reply = new OVXStatisticsReply(flowStatsReply);
+        sw.sendMsg(reply, sw);
 
         /*if (this.outPort.getPortNumber() == OFPort.ANY.getPortNumber()) {
             for (PhysicalSwitch psw : getPhysicalSwitches(sw)) {

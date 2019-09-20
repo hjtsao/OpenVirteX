@@ -339,6 +339,8 @@ public class OVXFlowTable implements FlowTable {
         log.debug("addFlowMod Cookie = " + U64.of(cookie).toString());
         log.debug("HashCode = " + U32.of(flowmod.getFlowMod().hashCode()).toString());
         log.debug(flowmod.getFlowMod().toString());
+        log.info("{} adding rule [match: {}, action: {}]", this.vswitch.getSwitchName(),
+                flowmod.getFlowMod().getMatch().toString(), flowmod.getFlowMod().getInstructions().toString());
         OFFlowMod ofFlowMod = (OFFlowMod)flowmod.getOFMessage();
         org.projectfloodlight.openflow.types.U64.of(0);
         OFFlowStatsEntry ofFlowStatsEntry = OFFactoryVer13.INSTANCE.buildFlowStatsEntry()
