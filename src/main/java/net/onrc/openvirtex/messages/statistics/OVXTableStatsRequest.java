@@ -19,6 +19,7 @@
  */
 package net.onrc.openvirtex.messages.statistics;
 
+import net.onrc.openvirtex.elements.datapath.OVXFlowTable;
 import net.onrc.openvirtex.elements.datapath.OVXSwitch;
 import net.onrc.openvirtex.messages.OVXStatisticsReply;
 import net.onrc.openvirtex.messages.OVXStatisticsRequest;
@@ -64,10 +65,10 @@ public class OVXTableStatsRequest extends OVXStatistics implements Devirtualizab
         }else {
 
             this.ofTableStatsEntry = ofFactory.buildTableStatsEntry()
-                    .setActiveCount(sw.getFlowTable().getFlowTable().size())
+                    .setActiveCount(((OVXFlowTable)(sw.getFlowTable())).getFlowStatsEntryList().size())
                     .setMatchedCount(U64.of(0))
                     .setLookupCount(U64.of(0))
-                    .setTableId(TableId.of(1))
+                    .setTableId(TableId.of(0))
                     .build();
 
             tableStatsEntries.add(this.ofTableStatsEntry);

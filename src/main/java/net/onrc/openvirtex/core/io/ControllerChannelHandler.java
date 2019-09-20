@@ -223,7 +223,6 @@ public class ControllerChannelHandler extends OFChannelHandler {
             @Override
             void processOFMessage(final ControllerChannelHandler h,
                                   final OVXMessage m) throws IOException {
-                h.log.info("OVXSwitch {} is active now", h.sw.getSwitchId());
                 if (m.getOFMessage().getVersion() == OFVersion.OF_13) {
                     switch (m.getOFMessage().getType()) {
                         case HELLO:
