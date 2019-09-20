@@ -159,7 +159,7 @@ public class ControllerChannelHandler extends OFChannelHandler {
             @Override
             void processOFStatsRequest(final ControllerChannelHandler h,
                                           final OVXMessage m) {
-
+                ((OVXSwitch)h.sw).generatePortDescStatsReplyVer13();
                 OFPortDescStatsReply reply = h.sw.getPortDescStatsReply();
 
                 if (h.sw.getPortDescStatsReply() == null) {
